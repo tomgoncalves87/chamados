@@ -2,23 +2,75 @@ from datetime import datetime
 from banco import funcao_select
 from banco import funcao_insert
 from banco import funcao_listar
+from banco import funcao_update
 import customtkinter as ctk
 from tkinter import messagebox
 from tkinter import ttk
 from atualiza import atualiza_menu_clientes, atualiza_menu_tecnicos
+from centraliza import centraliza_janela
 
 id_ticket_selecionado = ""
 status = ["ABERTO", "FECHADO", "TICKET BLIP", "AGUARDANDO CLIENTE"]
 
 if __name__ == "__main__":
-    def centraliza_janela(janela, largura, altura):
-        largura_tela = janela.winfo_screenwidth()
-        altura_tela = janela.winfo_screenheight()
+    def mascara_data(event):
+        entry = event.widget
 
-        posx = (largura_tela // 2) - (largura // 2)
-        posy = (altura_tela // 2) - (altura // 2)
+        texto = entry.get().replace("/","") #remove barras se forem colocadas
+        novo = ""
 
-        janela.geometry(f"{largura}x{altura}+{posx}+{posy}")
+        if not texto.isdigit():
+            entry.delete(0, "end")
+            entry.insert(0, "")
+            return
+
+        #dia
+        if len(texto) >=2:
+            novo += texto[:2] + "/"
+        else:
+            novo += texto
+            entry.delete(0, "end")
+            entry.insert(0, novo)
+            return 
+            
+        #mês
+        if len(texto) >= 4:
+            novo += texto[2:4] + "/"
+        else:
+            novo +=texto[2:]
+            entry.delete(0, "end")
+            entry.insert(0, novo)
+            return
+            
+        #ano
+        if len(texto) > 4:
+            novo += texto[4:8]
+
+        entry.delete(0, "end")
+        entry.insert(0, novo)
+
+    def mascara_hora(event):
+        entry =event.widget
+        nova_hora = ""
+
+        hora = entry.get().replace(":","")
+
+        if not hora.isdigit():
+            entry.delete(0,"end")
+            return
+
+        
+        if len(hora) >= 2:
+            nova_hora += hora[:2] + ":"
+            
+            #MINUTOS
+            if len(hora) > 2:
+                nova_hora += hora[2:]
+        else:
+            nova_hora += hora
+        
+        entry.delete(0, "end")
+        entry.insert(0, nova_hora)
 
     def pesquisa():
         def executar_pesquisa():
@@ -47,8 +99,7 @@ if __name__ == "__main__":
         janela_pesquisa =  ctk.CTkToplevel(app)
         janela_pesquisa.attributes('-topmost', True)
         janela_pesquisa.title("Pesquisa por nome")
-        janela_pesquisa.geometry("800x600")
-
+        centraliza_janela(janela_pesquisa)
 
         label_nome_pesquisa = ctk.CTkLabel(janela_pesquisa, text="Nome do cliente: ")
         label_nome_pesquisa.grid(row=1, column=0, padx=10, pady=10,sticky="e")
@@ -66,7 +117,7 @@ if __name__ == "__main__":
         janela_pesquisa_atendente = ctk.CTkToplevel(app)
         janela_pesquisa_atendente.attributes("-topmost", True)
         janela_pesquisa_atendente.title("Tickets Cadastrados")
-        janela_pesquisa_atendente.geometry("600x400")
+        centraliza_janela(janela_pesquisa_atendente)
 
         if not resultados:
             label = ctk.CTkLabel(janela_pesquisa_atendente, text="Nenhum resultado encontrado!")
@@ -118,7 +169,7 @@ if __name__ == "__main__":
         janela_cadastro_atendente = ctk.CTkToplevel(app)
         janela_cadastro_atendente.attributes("-topmost", True)
         janela_cadastro_atendente.title("CADASTRO DE ATENDENTE")
-        janela_cadastro_atendente.geometry("800x600")
+        centraliza_janela(janela_cadastro_atendente)
 
         label_nome_atendente = ctk.CTkLabel(janela_cadastro_atendente, text="Nome do Tecnico")
         label_nome_atendente.grid(row=1, column=0, padx=10, pady=10, sticky="e")
@@ -158,7 +209,7 @@ if __name__ == "__main__":
         elif nome_cliente_selecionado == "Selecione":
             messagebox.showinfo("Selecione o nome do cliente!!!")
         else:
-            sql = f"INSERT INTO tickets (id_clientes,data_abertura,hora_abertura,descricao,hora_primeiro_retorno,data_retorno_final,hora_retorno_final,tecnico,status_ticket) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            sql = f"INSERT INTO tickets (id_cliente,data_abertura,hora_abertura,descricao,hora_primeiro_retorno,data_retorno_final,hora_retorno_final,tecnico,status_ticket) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
             
             param = (
                 id_cliente,
@@ -206,7 +257,7 @@ if __name__ == "__main__":
         janela_cadastro_clientes = ctk.CTkToplevel(app)
         janela_cadastro_clientes.attributes("-topmost",True)
         janela_cadastro_clientes.title("CADASTRO DE CLIENTES")
-        janela_cadastro_clientes.geometry("800x600")
+        centraliza_janela(janela_cadastro_clientes)
 
         label_nome_cliente = ctk.CTkLabel(janela_cadastro_clientes, text="Nome do cliente")
         label_nome_cliente.grid(row=1, column=0, padx=10, pady=10, sticky="e")
@@ -224,12 +275,9 @@ if __name__ == "__main__":
         janela = ctk.CTkToplevel(app)
         janela.attributes("-topmost", True)
         janela.title("Tickets Cadastrados")
-        janela.geometry("800x400")
+        centraliza_janela(janela)
 
         def obter_id(event):
-            def atualiza_tickets():
-                messagebox.showinfo("Botão foi clicado!!!")
-
             item_selecionado = tabela.selection()
 
             if item_selecionado:
@@ -240,12 +288,12 @@ if __name__ == "__main__":
             janela_editar_ticket = ctk.CTkToplevel(app)
             janela_editar_ticket.attributes("-topmost",True)
             janela_editar_ticket.title("Editar Tickets")
-            janela_editar_ticket.geometry("800x400")
+            centraliza_janela(janela_editar_ticket)
 
             janela_editar_ticket.grid_columnconfigure(0, weight=0)
             janela_editar_ticket.grid_columnconfigure(1, weight=1)
 
-            sql = "SELECT * FROM tickets T JOIN clientes C ON T.id_clientes = C.id WHERE T.id=%s"
+            sql = "SELECT * FROM tickets T JOIN clientes C ON T.id_cliente = C.id WHERE T.id=%s"
             param = id_ticket_selecionado,
             retorno = funcao_select(sql,param)
 
@@ -259,6 +307,18 @@ if __name__ == "__main__":
             #RECUPERANDO STATUS
             status_retorno = retorno[0][8]
 
+            def atualiza_tickets():
+                nome_cliente = botao_nome_cliente.get()
+                data_solicitacao = botao_data_solicitacao.get()
+                descricao = botao_descricao.get()
+                tecnico = botao_tecnico.get()
+                status = select_status.get()
+
+                sql = "UPDATE tickets SET id_cliente = %s, data_abertura = %s, descricao = %s, tecnico = %s, status_ticket=%s WHERE id=%s"
+                params = (retorno[0][1], data_solicitacao,descricao,tecnico,status,id_ticket_selecionado)
+
+                funcao_update(sql, params)
+
             label_titulo = ctk.CTkLabel(janela_editar_ticket, text="EDITAR DADOS DO CLIENTE", font=("Arial", 24, "bold"), anchor="center",)
             label_titulo.grid(row=0, column=0, columnspan=2, padx=10, pady=(10,0), sticky="ew")
             
@@ -268,26 +328,30 @@ if __name__ == "__main__":
             label_nome_cliente = ctk.CTkLabel(frame_dados, text="Nome do cliente", width=100)
             label_nome_cliente.grid(row=1, column=0, padx=10, pady=10, sticky="e")
 
-            botao_nome_cliente = ctk.CTkEntry(frame_dados, placeholder_text=retorno[0][11], width=600)
+            botao_nome_cliente = ctk.CTkEntry(frame_dados, width=600)
             botao_nome_cliente.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+            botao_nome_cliente.insert(0, retorno[0][11])
 
             label_data_solicitacao = ctk.CTkLabel(frame_dados, text="Data da Solicitação", width=100)
             label_data_solicitacao.grid(row=2, column=0, padx=10, pady=10, sticky="e")
 
-            botao_data_solicitacao = ctk.CTkEntry(frame_dados, placeholder_text=data_tratada, width=600)
+            botao_data_solicitacao = ctk.CTkEntry(frame_dados, width=600)
             botao_data_solicitacao.grid(row=2, column=1, padx=10, pady=10, sticky="w")
+            botao_data_solicitacao.insert(0, data_tratada,)
 
             label_descricao = ctk.CTkLabel(frame_dados, text="Descrição", width=100)
             label_descricao.grid(row=3, column=0, padx=10, pady=10, sticky="e")
 
-            botao_descricao = ctk.CTkEntry(frame_dados, placeholder_text=retorno[0][9], width=600)
+            botao_descricao = ctk.CTkEntry(frame_dados, width=600)
             botao_descricao.grid(row=3, column=1, padx=10, pady=10, sticky="w")
+            botao_descricao.insert(0, retorno[0][9])
 
             label_tecnico = ctk.CTkLabel(frame_dados, text="Técnico", width=100)
             label_tecnico.grid(row=4, column=0, padx=10, pady=10, sticky="e")
 
             botao_tecnico = ctk.CTkEntry(frame_dados, placeholder_text=retorno[0][7], width=600)
             botao_tecnico.grid(row=4, column=1, padx=10, pady=10, sticky="w")
+            botao_tecnico.insert(0, retorno[0][7])
 
             label_status = ctk.CTkLabel(frame_dados, text= "Status", width=100)
             label_status.grid(row=5, column=0, padx=10, pady=10, sticky = "e")
@@ -339,10 +403,8 @@ if __name__ == "__main__":
     # -- CRIA A JANELA PRINCIPAL
     app = ctk.CTk()
     app.title('INSERE CLIENTES')
-    largura = 1200
-    altura = 700
 
-    centraliza_janela(app, largura, altura)
+    centraliza_janela(app)
 
     def novajanela():
         nova_janela = ctk.CTk()
@@ -395,67 +457,6 @@ if __name__ == "__main__":
     campo_cliente = ctk.CTkOptionMenu(frame_campos, values=clientes,width=600)
     campo_cliente.grid(row=2, column=1, padx=55,pady=10,sticky="w")
     campo_cliente.set('Selecione')
-
-    #--MASCARA DATA
-    def mascara_data(event):
-        entry = event.widget
-
-        texto = entry.get().replace("/","") #remove barras se forem colocadas
-        novo = ""
-
-        if not texto.isdigit():
-            entry.delete(0, "end")
-            entry.insert(0, "")
-            return
-
-        #dia
-        if len(texto) >=2:
-            novo += texto[:2] + "/"
-        else:
-            novo += texto
-            entry.delete(0, "end")
-            entry.insert(0, novo)
-            return 
-            
-        #mês
-        if len(texto) >= 4:
-            novo += texto[2:4] + "/"
-        else:
-            novo +=texto[2:]
-            entry.delete(0, "end")
-            entry.insert(0, novo)
-            return
-            
-        #ano
-        if len(texto) > 4:
-            novo += texto[4:8]
-
-        entry.delete(0, "end")
-        entry.insert(0, novo)
-
-    #--MASCARA HORA
-    def mascara_hora(event):
-        entry =event.widget
-        nova_hora = ""
-
-        hora = entry.get().replace(":","")
-
-        if not hora.isdigit():
-            entry.delete(0,"end")
-            return
-
-        
-        if len(hora) >= 2:
-            nova_hora += hora[:2] + ":"
-            
-            #MINUTOS
-            if len(hora) > 2:
-                nova_hora += hora[2:]
-        else:
-            nova_hora += hora
-        
-        entry.delete(0, "end")
-        entry.insert(0, nova_hora)
 
     label_data_abertura = ctk.CTkLabel(frame_campos,text='Data da Solicitação', width=100)
     label_data_abertura.grid(row=3, column=0, padx=10,pady=10,sticky="e")

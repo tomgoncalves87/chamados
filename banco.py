@@ -57,8 +57,7 @@ def funcao_listar(consulta_Sql):
         cursor = con.cursor()
         cursor.execute(consulta_Sql)
         linha = cursor.fetchall()
-        return linha
-    
+        return linha   
     except Error as e:
         print("Erro ao acessar tabela", e)
         return[]
@@ -67,4 +66,20 @@ def funcao_listar(consulta_Sql):
             cursor.close()
             con.close()
 
-            print("Conexão com o banco de dados encerrada")
+            print("Conexão com o banco de dados encerrada.")
+
+def funcao_update(consulta_sql,param):
+    try:
+        con = conexao()
+        cursor = con.cursor()
+        cursor.execute(consulta_sql,param)
+        con.commit()
+    except Error as e:
+        print("Erro ao acessar tabela", e)
+        return[]
+    finally:
+        if(con.is_connected()):
+            cursor.close()
+            con.close()
+
+            print("Conexão com o banco de dados encerrada.")
